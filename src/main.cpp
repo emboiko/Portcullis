@@ -50,6 +50,14 @@ const uint8_t DIGITS[] = {
     0x6f  //9
 };
 
+void activate_display() {
+    // Enable segment display from setup()
+
+    digitalWrite(SEGMENT_STB_PIN, LOW);
+    shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, 0x8f);
+    digitalWrite(SEGMENT_STB_PIN, HIGH);
+}  
+
 void display_counter() {
     /*
         https://i.imgur.com/vsRpUjp.png
@@ -198,6 +206,8 @@ void setup() {
     pinMode(SEGMENT_DIO_PIN, OUTPUT);
     pinMode(LASER_RECEIVE_PIN, INPUT);
     pinMode(LASER_EMIT_PIN, OUTPUT);
+    // Enable segment display
+    activate_display();
     // Enable COM @ low baudrate 
     Serial.begin(9600);
 }
