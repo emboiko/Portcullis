@@ -1,30 +1,43 @@
 /*
 Ed Boiko
 1/24/2020
-Portcullis, powered by Arduino & C++
+----------
+Portcullis is a little box that lives on a door and adds some unsophisticated security
+to a room. Keep track of door accesses and/or attach your own callback process w/ the
+provided python "driver" (coming soon).
+
+Powered by Arduino & C++.
 */
 
 #include <Arduino.h>
 
-// Global pins as const unsigned 8-bit int
-const uint8_t btn_reset_pin{2};
-const uint8_t btn_arm_pin{3};
-const uint8_t led_red_pin{5};
-const uint8_t led_yellow_pin{6};
-const uint8_t led_green_pin{7};
-const uint8_t segment_stb_pin{8};
-const uint8_t segment_clk_pin{9};
-const uint8_t segment_dio_pin{10};
-const uint8_t laser_receive_pin{11};
-const uint8_t laser_emit_pin{12};
+/*
+If we want to keep track of this data on the other side of the serial port, 
+it may be easier with a delimiter. For this, we can use negative integers.
+*/
+#define RESET -1
+#define WRAP -2
 
-// Global counter & flags
+// Globals
+// Pins as const unsigned 8-bit int
+const uint8_t BTN_RESET_PIN{2};
+const uint8_t BTN_ARM_PIN{3};
+const uint8_t LED_RED_PIN{5};
+const uint8_t LED_YELLOW_PIN{6};
+const uint8_t LED_GREEN_PIN{7};
+const uint8_t SEGMENT_STB_PIN{8};
+const uint8_t SEGMENT_CLK_PIN{9};
+const uint8_t SEGMENT_DIO_PIN{10};
+const uint8_t LASER_RECEIVE_PIN{11};
+const uint8_t LASER_EMIT_PIN{12};
+
+// Counter & flags
 unsigned short int counter{0};
 bool reset = false;
 bool armed = false;
 
-// Global hex data for segment display
-const uint8_t digits[] = {
+// Hex data for segment display
+const uint8_t DIGITS[] = {
     0x3f, //0
     0x06, //1
     0x5b, //2
@@ -42,36 +55,30 @@ void display_counter() {
         https://i.imgur.com/vsRpUjp.png
         https://retrocip.cz/files/tm1638.pdf
         Updates a 4-bit, 7-segment LED display (TM1638):
-            Place values are individually calculated & indexed from global array digits.
-            Data is shifted out least significant bit first.
+        Place values are individually calculated & indexed from const global array DIGITS.
+        Data is shifted out least significant bit first.
     */
 
-    digitalWrite(segment_stb_pin, LOW); 
-    shiftOut(segment_dio_pin, segment_clk_pin, LSBFIRST, 0xc0);
+    digitalWrite(SEGMENT_STB_PIN, LOW); 
+    shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, 0xc0);
 
-    shiftOut(segment_dio_pin, segment_clk_pin, LSBFIRST, digits[counter/1000%10]);
-    shiftOut(segment_dio_pin, segment_clk_pin, LSBFIRST, 0x00);
-    shiftOut(segment_dio_pin, segment_clk_pin, LSBFIRST, digits[counter/100%10]);
-    shiftOut(segment_dio_pin, segment_clk_pin, LSBFIRST, 0x00);
-    shiftOut(segment_dio_pin, segment_clk_pin, LSBFIRST, digits[counter/10%10]);
-    shiftOut(segment_dio_pin, segment_clk_pin, LSBFIRST, 0x00);
-    shiftOut(segment_dio_pin, segment_clk_pin, LSBFIRST, digits[counter%10]);
-    shiftOut(segment_dio_pin, segment_clk_pin, LSBFIRST, 0x00);
+    shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, DIGITS[counter/1000%10]);
+    shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, 0x00);
+    shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, DIGITS[counter/100%10]);
+    shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, 0x00);
+    shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, DIGITS[counter/10%10]);
+    shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, 0x00);
+    shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, DIGITS[counter%10]);
+    shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, 0x00);
 
-    digitalWrite(segment_stb_pin, HIGH);
+    digitalWrite(SEGMENT_STB_PIN, HIGH);
 }
 
 void wrap_counter() {
-    /* 
-        Max supported int for the 4-bit 7-segment LED is 9999. 
-        If we want to keep track of this data on the other side of the 
-        serial port, it may be easier with a delimiter, which most likely
-        won't remain as a string literal. A hardcoded negative integer might
-        work more elegantly with the drivers- it depends on your situation.
-    */
+    // Max supported int for the 4-bit 7-segment LED is 9999, wrap to 1 if we exceed.
 
     if (counter > 9999) {
-        Serial.println("wrap");
+        Serial.println(WRAP);
         counter = 1;
         Serial.println(counter);
     }
@@ -79,24 +86,33 @@ void wrap_counter() {
 
 void set_reset() {
     /*
-        Runs at least once per loop, checking if the user reset the counter.
+        Runs at least once per mainloop, checking if the user reset the counter.
         If the reset button got pressed, block while it's depressed & set counter
-        back to 0 after the button is released. The implicit delay is an attempt
-        to negate input jittering. bool reset is set to true, so we don't increment
-        the counter if we reset while armed. There's another ugly string literal 
-        interpolater like in wrap_counter() that will probably get replaced with a 
-        hardcoded negative integer.
+        back to 0 after the button is released. bool reset is set to true, so we 
+        don't increment the counter if we reset while armed.
     */
 
-    if (digitalRead(btn_reset_pin) == LOW) {
-        delay(10);
-        while (digitalRead(btn_reset_pin) == LOW) {
-            digitalWrite(led_yellow_pin, HIGH);
+    if (digitalRead(BTN_RESET_PIN) == LOW) {
+        delay(10); //Not perfect but easier than writing a debounce for now.
+        while (digitalRead(BTN_RESET_PIN) == LOW) {
+            digitalWrite(LED_YELLOW_PIN, HIGH);
         }
-        digitalWrite(led_yellow_pin, LOW);
+        digitalWrite(LED_YELLOW_PIN, LOW);
         reset = true;
         counter = 0;
-        Serial.println("reset");
+        Serial.println(RESET);
+        /*
+        Probably the coolest line in the whole program, though useless in the context
+        of the mainloop. This is included for use in read_laser(), where we use it to
+        break the while conditional and fall back into loop().
+        Comment the line below, compile + upload, and notice the counter works almost
+        correctly, but not quite. We're reset for that cycle, so we're not going to
+        begin counting until the next cycle comes and bool reset is set back to false.
+        We'll blink the laser off so we don't meet the conditional anymore, which lets
+        the counter seamlessly resume next cycle no matter what. Without a delay, this 
+        happens remarkably quick and isn't noticeable to the eye- how fascinating.
+        */
+        digitalWrite(LASER_EMIT_PIN, LOW);
     }
 }
 
@@ -107,18 +123,18 @@ void set_armed() {
         after release. Laser emitter & yellow LED pins are written accordingly.
     */
 
-    if (digitalRead(btn_arm_pin) == LOW) {
-        delay(10);
-        while (digitalRead(btn_arm_pin) == LOW);
+    if (digitalRead(BTN_ARM_PIN) == LOW) {
+        delay(10); //see set_reset()
+        while (digitalRead(BTN_ARM_PIN) == LOW);
         armed = !armed;
     }
 
     if (armed) {
-        digitalWrite(led_yellow_pin, LOW);
-        digitalWrite(laser_emit_pin, HIGH);
+        digitalWrite(LED_YELLOW_PIN, LOW);
+        digitalWrite(LASER_EMIT_PIN, HIGH);
     } else {
-        digitalWrite(led_yellow_pin, HIGH);
-        digitalWrite(laser_emit_pin, LOW);
+        digitalWrite(LED_YELLOW_PIN, HIGH);
+        digitalWrite(LASER_EMIT_PIN, LOW);
     }
 }
 
@@ -144,14 +160,14 @@ void read_laser() {
 
     reset = false;
     // (2)
-    if (digitalRead(laser_receive_pin) == LOW && armed) {
-        digitalWrite(led_green_pin, LOW);
-        digitalWrite(led_red_pin, HIGH);
+    if (digitalRead(LASER_RECEIVE_PIN) == LOW && armed) {
+        digitalWrite(LED_GREEN_PIN, LOW);
+        digitalWrite(LED_RED_PIN, HIGH);
     // (3)
-    } else if (digitalRead(laser_receive_pin) == HIGH && armed) {
-        digitalWrite(led_green_pin, HIGH);
-        digitalWrite(led_red_pin, LOW);
-        while (digitalRead(laser_receive_pin) == HIGH && armed) {
+    } else if (digitalRead(LASER_RECEIVE_PIN) == HIGH && armed) {
+        digitalWrite(LED_GREEN_PIN, HIGH);
+        digitalWrite(LED_RED_PIN, LOW);
+        while (digitalRead(LASER_RECEIVE_PIN) == HIGH && armed) {
             set_armed();
             set_reset();
             display_counter();
@@ -165,23 +181,23 @@ void read_laser() {
         } 
     // (1)
     } else if (!armed) {
-        digitalWrite(led_green_pin, LOW);
-        digitalWrite(led_red_pin, LOW);
+        digitalWrite(LED_GREEN_PIN, LOW);
+        digitalWrite(LED_RED_PIN, LOW);
     }
 }
 
 void setup() {
     // Digital I/O pin modes:
-    pinMode(btn_reset_pin, INPUT);
-    pinMode(btn_arm_pin, INPUT);
-    pinMode(led_red_pin, OUTPUT);
-    pinMode(led_yellow_pin, OUTPUT);
-    pinMode(led_green_pin, OUTPUT);
-    pinMode(segment_stb_pin, OUTPUT);
-    pinMode(segment_clk_pin, OUTPUT);
-    pinMode(segment_dio_pin, OUTPUT);
-    pinMode(laser_receive_pin, INPUT);
-    pinMode(laser_emit_pin, OUTPUT);
+    pinMode(BTN_RESET_PIN, INPUT);
+    pinMode(BTN_ARM_PIN, INPUT);
+    pinMode(LED_RED_PIN, OUTPUT);
+    pinMode(LED_YELLOW_PIN, OUTPUT);
+    pinMode(LED_GREEN_PIN, OUTPUT);
+    pinMode(SEGMENT_STB_PIN, OUTPUT);
+    pinMode(SEGMENT_CLK_PIN, OUTPUT);
+    pinMode(SEGMENT_DIO_PIN, OUTPUT);
+    pinMode(LASER_RECEIVE_PIN, INPUT);
+    pinMode(LASER_EMIT_PIN, OUTPUT);
     // Enable COM @ low baudrate 
     Serial.begin(9600);
 }
