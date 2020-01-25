@@ -36,7 +36,7 @@ unsigned short int counter{0};
 bool reset = false;
 bool armed = false;
 
-// Hex data for segment display
+// Hex data for segment display => LSBfirst
 const uint8_t DIGITS[] = {
     0x3f, //0
     0x06, //1
@@ -50,13 +50,29 @@ const uint8_t DIGITS[] = {
     0x6f  //9
 };
 
-void activate_display() {
-    // Enable segment display from setup()
+uint8_t zero_roll[] = {
+    0x00, // Off
+    0x3F, // 0
+    0x3F, // 0
+    0x3F, // 0
+};
+const uint8_t MESSAGE_LENGTH = sizeof(zero_roll) / sizeof(*zero_roll);
 
-    digitalWrite(SEGMENT_STB_PIN, LOW);
-    shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, 0x8f);
-    digitalWrite(SEGMENT_STB_PIN, HIGH);
-}  
+void roll_message(uint8_t message[], const uint8_t length) {
+    /* 
+        Array shifter for zero_roll. This lets the segment display "scroll" a 
+        message longer than 4 characters. 
+    */
+
+    int temp = message[0];
+
+    for (int i = 0; i < length-1; i++) {
+        message[i] = message[i+1];
+    }
+
+    message[length-1] = temp;
+
+}
 
 void display_counter() {
     /*
@@ -77,6 +93,24 @@ void display_counter() {
     shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, DIGITS[counter/10%10]);
     shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, 0x00);
     shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, DIGITS[counter%10]);
+    shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, 0x00);
+
+    digitalWrite(SEGMENT_STB_PIN, HIGH);
+}
+
+void display_counter(uint8_t message[]) {
+    // Overloaded for message argument
+
+    digitalWrite(SEGMENT_STB_PIN, LOW); 
+    shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, 0xc0);
+
+    shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, message[0]);
+    shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, 0x00);
+    shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, message[1]);
+    shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, 0x00);
+    shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, message[2]);
+    shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, 0x00);
+    shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, message[3]);
     shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, 0x00);
 
     digitalWrite(SEGMENT_STB_PIN, HIGH);
@@ -103,7 +137,14 @@ void set_reset() {
     if (digitalRead(BTN_RESET_PIN) == LOW) {
         delay(10); //Not perfect but easier than writing a debounce for now.
         while (digitalRead(BTN_RESET_PIN) == LOW) {
+            // yellow LED on
             digitalWrite(LED_YELLOW_PIN, HIGH);
+            // shift message array by 1
+            roll_message(zero_roll, MESSAGE_LENGTH);
+            // display first four chars in message aray
+            display_counter(zero_roll);
+            // delay so we can watch it scroll while the button is down
+            delay(100);
         }
         digitalWrite(LED_YELLOW_PIN, LOW);
         reset = true;
@@ -192,6 +233,14 @@ void read_laser() {
         digitalWrite(LED_GREEN_PIN, LOW);
         digitalWrite(LED_RED_PIN, LOW);
     }
+}
+
+void activate_display() {
+    // Enable segment display from setup()
+
+    digitalWrite(SEGMENT_STB_PIN, LOW);
+    shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, 0x8f);
+    digitalWrite(SEGMENT_STB_PIN, HIGH);
 }
 
 void setup() {
