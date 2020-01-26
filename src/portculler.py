@@ -15,8 +15,8 @@ class Portculler:
             "-6": self.close,
             "-7": self.start,
         }
-        self.wraps = 0
         self.WRAP_LIMIT = 9999
+        self.wraps = 0
         self.full_count = 0
 
         try:
@@ -46,6 +46,8 @@ class Portculler:
 
 
     def reset(self):
+        self.full_count = 0
+        self.wraps = 0
         print("Counter Reset.")
 
 
