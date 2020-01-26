@@ -17,6 +17,11 @@ it may be easier with a delimiter. For this, we can use negative integers.
 */
 #define RESET -1
 #define WRAP -2
+#define ARM -3
+#define DISARM -4
+#define OPEN -5
+#define CLOSE -6
+#define START -7
 
 // Globals
 // Pins as const unsigned 8-bit int
@@ -35,6 +40,7 @@ const uint8_t LASER_EMIT_PIN{12};
 unsigned short int counter{0};
 bool reset = false;
 bool armed = false;
+bool open = false;
 
 // Hex data for segment display => LSBfirst
 const uint8_t DIGITS[] = {
@@ -50,6 +56,10 @@ const uint8_t DIGITS[] = {
     0x6f  //9
 };
 
+/*
+    A simple pattern we can shift and animate the display with, 
+    or a message of arbitrary length. Only 4 characters fit at once.
+*/
 uint8_t zero_roll[] = {
     0x00, // Off
     0x3F, // 0
@@ -176,6 +186,7 @@ void set_armed() {
         delay(10); //see set_reset()
         while (digitalRead(BTN_ARM_PIN) == LOW);
         armed = !armed;
+        (armed) ? Serial.println(ARM) : Serial.println(DISARM);
     }
 
     if (armed) {
@@ -216,14 +227,17 @@ void read_laser() {
     } else if (digitalRead(LASER_RECEIVE_PIN) == HIGH && armed) {
         digitalWrite(LED_GREEN_PIN, HIGH);
         digitalWrite(LED_RED_PIN, LOW);
+        Serial.println(CLOSE);
         while (digitalRead(LASER_RECEIVE_PIN) == HIGH && armed) {
             set_armed();
             set_reset();
             display_counter();
         }
+        
         // (4)
         if (!reset && armed) {
             ++counter;
+            Serial.println(OPEN);
             if (counter <= 9999) {
                 Serial.println(counter);
             }
@@ -259,6 +273,7 @@ void setup() {
     activate_display();
     // Enable COM @ low baudrate 
     Serial.begin(9600);
+    Serial.println(START);
 }
 
 void loop() {
