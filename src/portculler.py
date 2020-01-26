@@ -5,7 +5,13 @@ from sys import argv, path
 
 class Portculler:
     def __init__(self):
-        self.port = argv[1]
+        try:
+            self.port = argv[1]
+        except IndexError:
+            print("Missing argument: serial port (ex: COM1)")
+            run(["pause"], shell=True)
+            raise SystemExit
+
         self.callbacks = {
             "-1": self.reset,
             "-2": self.wrap,
@@ -23,6 +29,9 @@ class Portculler:
             self._listen()
         except SerialException as err:
             print(err)
+            print("Serial port is likely already in use.")
+            run(["pause"], shell=True)
+            raise SystemExit
 
 
     def _listen(self):

@@ -25,7 +25,7 @@ to a room. Keep track of accesses and/or attach your own callback process using 
 - Import to platformio w/  VSCode or Arduino IDE
 - Build & upload to your board.
 
-###### If you plan on extending the Python:
+##### If you plan on extending the Python:
 ```
 python -m virtualenv </path/to/virtualenv>
 pip install pyserial
@@ -37,8 +37,8 @@ Take a peak at [pyserial](https://github.com/pyserial/pyserial) if that floats y
 #### Use:
 - ##### With COM (recommended):
 	- Connect via USB 
-	- `portculler.exe`
+	- `portculler.exe COMx` (where `x` is an appropriate integer COM port #)
 	- **or if you're extending the python**
-	- `python portculler.py`
+	- `python portculler.py COMx`
 - ##### Without COM (limited):
 	- Power it via USB or a barrel connector and watch it count how many times the door opened.

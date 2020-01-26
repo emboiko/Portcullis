@@ -40,7 +40,6 @@ const uint8_t LASER_EMIT_PIN{12};
 unsigned short int counter{0};
 bool reset = false;
 bool armed = false;
-bool open = false;
 
 // Hex data for segment display => LSBfirst
 const uint8_t DIGITS[] = {
@@ -72,6 +71,8 @@ void roll_message(uint8_t message[], const uint8_t length) {
     /* 
         Array shifter for zero_roll. This lets the segment display "scroll" a 
         message longer than 4 characters. 
+
+        message.insert(0,message.pop())
     */
 
     int temp = message[0];
@@ -219,10 +220,12 @@ void read_laser() {
     */
 
     reset = false;
+    
     // (2)
     if (digitalRead(LASER_RECEIVE_PIN) == LOW && armed) {
         digitalWrite(LED_GREEN_PIN, LOW);
         digitalWrite(LED_RED_PIN, HIGH);
+
     // (3)
     } else if (digitalRead(LASER_RECEIVE_PIN) == HIGH && armed) {
         digitalWrite(LED_GREEN_PIN, HIGH);
@@ -242,6 +245,7 @@ void read_laser() {
                 Serial.println(counter);
             }
         } 
+
     // (1)
     } else if (!armed) {
         digitalWrite(LED_GREEN_PIN, LOW);
@@ -251,7 +255,6 @@ void read_laser() {
 
 void activate_display() {
     // Enable segment display from setup()
-
     digitalWrite(SEGMENT_STB_PIN, LOW);
     shiftOut(SEGMENT_DIO_PIN, SEGMENT_CLK_PIN, LSBFIRST, 0x8f);
     digitalWrite(SEGMENT_STB_PIN, HIGH);
