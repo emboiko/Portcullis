@@ -71,8 +71,6 @@ void roll_message(uint8_t message[], const uint8_t length) {
     /* 
         Array shifter for zero_roll. This lets the segment display "scroll" a 
         message longer than 4 characters. 
-
-        message.insert(0,message.pop())
     */
 
     int temp = message[0];
@@ -286,4 +284,5 @@ void loop() {
     read_laser();
     wrap_counter();
     display_counter();
+    delay(25);
 }
