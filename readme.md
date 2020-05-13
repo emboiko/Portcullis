@@ -3,10 +3,10 @@
 ### Using Arduino, C++, and a dash of Python
 
 <p align="center">
-<img style="width:25%;"src="https://i.imgur.com/4ngS6eD.png?1">
+<img style="width:150px; "src="https://i.imgur.com/4ngS6eD.png?1">
 </p>
 <p align="center">
-<img style="width:50%;"src="https://i.imgur.com/vBMjLzB.jpg">
+<img style="width:500px; "src="https://i.imgur.com/vBMjLzB.jpg">
 </p>
 
 Portcullis is a little box that lives on the door and adds some unsophisticated security
@@ -54,56 +54,56 @@ Take a peak at [pyserial](https://github.com/pyserial/pyserial) if that floats y
 Upon powering the device, we'll find the display reading 0 with the yellow LED indicating a disarmed state.
 </p>
 <p align="center">
-<img style="width:50%;"src="https://i.imgur.com/DDfDWrw.jpg">
+<img style="width:500px; "src="https://i.imgur.com/DDfDWrw.jpg">
 </p>
 <p align="center">
-<img style="width:50%;"src="https://i.imgur.com/LQDIJfv.jpg?1">
+<img style="width:500px; "src="https://i.imgur.com/LQDIJfv.jpg?1">
 </p>
 
 <p align="center">
 Under the current configuration, the red button will arm or disarm the device, and the white button is used for a reset.
 </p>
 <p align="center">
-<img style="width:50%;"src="https://i.imgur.com/sK0QspW.jpg?1">
+<img style="width:500px; "src="https://i.imgur.com/sK0QspW.jpg?1">
 </p>
 
 <p align="center">
 Let's arm the device by pressing the red button, and observe the results. If our laser beam is unbroken, we'll find the counter is not incremented, and the green LED is now lit up.
 </p>
 <p align="center">
-<img style="width:50%;"src="https://i.imgur.com/OhumYMr.jpg">
+<img style="width:500px; "src="https://i.imgur.com/OhumYMr.jpg">
 </p>
 <p align="center">
-<img style="width:50%;"src="https://i.imgur.com/EukgzGO.jpg">
+<img style="width:500px; "src="https://i.imgur.com/EukgzGO.jpg">
 </p>
 
 <p align="center">
 In the case that the laser beam is broken, we'll observe the red LED being lit up.
 </p>
 <p align="center">
-<img style="width:50%;"src="https://i.imgur.com/LRdT5YP.jpg">
+<img style="width:500px; "src="https://i.imgur.com/LRdT5YP.jpg">
 </p>
 <p align="center">
-<img style="width:50%;"src="https://i.imgur.com/D0pViLF.jpg">
+<img style="width:500px; "src="https://i.imgur.com/D0pViLF.jpg">
 </p>
 
 <p align="center">
 For this example, let's begin with the device armed and the laser unbroken. Our 3D printed cube will act as the laser break and simulate a swinging door. The counter will increment for each time the system is "opened", or in this case "blocked".
 </p>
 <p align="center">
-<img style="width:50%;"src="https://i.imgur.com/Vlm6eoS.jpg">
+<img style="width:500px; "src="https://i.imgur.com/Vlm6eoS.jpg">
 </p>
 <p align="center">
-<img style="width:50%;"src="https://i.imgur.com/9CR41MW.jpg">
+<img style="width:500px; "src="https://i.imgur.com/9CR41MW.jpg">
 </p>
 <p align="center">
-<img style="width:50%;"src="https://i.imgur.com/GugcVqK.jpg">
+<img style="width:500px; "src="https://i.imgur.com/GugcVqK.jpg">
 </p>
 <p align="center">
-<img style="width:50%;"src="https://i.imgur.com/g0BGSa0.jpg">
+<img style="width:500px; "src="https://i.imgur.com/g0BGSa0.jpg">
 </p>
 <p align="center">
-<img style="width:50%;"src="https://i.imgur.com/wsO2DSk.jpg">
+<img style="width:500px; "src="https://i.imgur.com/wsO2DSk.jpg">
 </p>
 
 ---
@@ -137,9 +137,9 @@ Portculler will continue to keep track of the count when the 7-segment display n
 </p>
 
 <p align="center">
-<img style="width:50%;"src="https://i.imgur.com/I1j35b8.jpg">
+<img style="width:500px; "src="https://i.imgur.com/I1j35b8.jpg">
 </p><p align="center">
-<img style="width:50%;"src="https://i.imgur.com/OpguGUt.jpg">
+<img style="width:500px; "src="https://i.imgur.com/OpguGUt.jpg">
 </p>
 <p align="center">
 At the terminal:
